@@ -41,16 +41,21 @@ st.plotly_chart(choropleth_map)
 # Maximum and Minimum Mining Area by Country
 st.subheader("Maximum and Minimum Mining Area by Country")
 
-# Maximum and Minimum Calculations
-max_area = df_filtered.loc[df_filtered['AREA'].idxmax()]
-min_area = df_filtered.loc[df_filtered['AREA'].idxmin()]
+if df_filtered.empty:
+    st.write("No countries selected or no data available.")
+else:# Maximum and Minimum Calculations
+    max_area = df_filtered.loc[df_filtered['AREA'].idxmax()]
+    min_area = df_filtered.loc[df_filtered['AREA'].idxmin()]
 
 st.write(f"**Country with Maximum Mining Area**: {max_area['COUNTRY_NAME']} - {max_area['AREA']} sq km")
 st.write(f"**Country with Minimum Mining Area**: {min_area['COUNTRY_NAME']} - {min_area['AREA']} sq km")
 
 # Bar Chart: Top 10 Countries by Mining Area
 st.subheader("Top 10 Countries by Mining Area")
-top10_countries = df_filtered.nlargest(10, 'AREA')
+if df_filtered.empty:
+    st.write("No countries selected or no data available.")
+else:
+    top10_countries = df_filtered.nlargest(10, 'AREA')
 
 bar_chart = px.bar(top10_countries, 
                    x='COUNTRY_NAME', 
@@ -62,7 +67,10 @@ st.plotly_chart(bar_chart)
 
 # Scatter Plot: Relationship Between Mining Area and Number of Features
 st.subheader("Mining Area vs Number of Features")
-scatter_plot = px.scatter(df_filtered, 
+if df_filtered.empty:
+    st.write("No countries selected or no data available.")
+else:
+    scatter_plot = px.scatter(df_filtered, 
                           x='AREA', 
                           y='N_FEATURES', 
                           labels={'AREA': 'Mining Area (sq km)', 'N_FEATURES': 'Number of Mining Features'},
@@ -73,5 +81,8 @@ st.plotly_chart(scatter_plot)
 
 # Statistical Summary
 st.subheader("Statistical Summary of Mining Areas")
-st.write(f"**Average Mining Area**: {df_filtered['AREA'].mean():.2f} sq km")
-st.write(f"**Total Mining Area (Global)**: {df_filtered['AREA'].sum():.2f} sq km")
+if df_filtered.empty:
+    st.write("No countries selected or no data available.")
+else:
+    st.write(f"**Average Mining Area**: {df_filtered['AREA'].mean():.2f} sq km")
+    st.write(f"**Total Mining Area (Global)**: {df_filtered['AREA'].sum():.2f} sq km")
