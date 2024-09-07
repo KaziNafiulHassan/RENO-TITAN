@@ -18,13 +18,18 @@ df_melted = df_cleaned.melt(id_vars=['Country', 'Sub-commodity'], var_name='Year
 # Initialize a Streamlit app
 st.title("Interactive Dashboard: Titanium Export Statistics (1970-2000)")
 
-# Sidebar filter
-country_filter = st.sidebar.multiselect('Select Countries', options=df_melted['Country'].unique(), default=df_melted['Country'].unique())
-commodity_filter = st.sidebar.multiselect('Select Sub-commodities', options=df_melted['Sub-commodity'].unique(), default=df_melted['Sub-commodity'].unique())
-year_filter = st.sidebar.slider('Select Year', min_value=1970, max_value=2000, value=1970)
 
 # Filter the dataframe based on selections
-df_filtered = df_melted[(df_melted['Country'].isin(country_filter)) & (df_melted['Sub-commodity'].isin(commodity_filter))]
+st.subheader("Filter Data")
+country_filter = st.multiselect('Select Countries', options=df_melted['Country'].unique())
+commodity_filter = st.multiselect('Select Sub-commodities', options=df_melted['Sub-commodity'].unique())
+
+# Filter the dataframe based on selections (only apply filters if user selects anything)
+df_filtered = df_melted.copy()
+if country_filter:
+    df_filtered = df_filtered[df_filtered['Country'].isin(country_filter)]
+if commodity_filter:
+    df_filtered = df_filtered[df_filtered['Sub-commodity'].isin(commodity_filter)]
 
 # Line Chart: Trend over Time
 st.subheader("Trend of Titanium Exports Over Time")
@@ -43,20 +48,26 @@ st.subheader("Maximum and Minimum Exports by Country")
 df_grouped = df_melted.groupby('Country')['Export in Metric Ton'].agg(['max', 'min']).reset_index()
 
 # Display maximum and minimum exports
-st.write("Maximum Exports by Country")
-st.write(df_grouped[['Country', 'max']].sort_values(by='max', ascending=False))
+left, right = st.columns(2)
+with left:
+    st.write("Maximum Exports by Country")
+    st.write(df_grouped[['Country', 'max']].sort_values(by='max', ascending=False))
+with right:
+    st.write("Minimum Exports by Country")
+    st.write(df_grouped[['Country', 'min']].sort_values(by='min'))
 
-st.write("Minimum Exports by Country")
-st.write(df_grouped[['Country', 'min']].sort_values(by='min'))
 
 # Choropleth Map: Geographical Distribution of Values
 st.subheader("Geographical Distribution of Titanium Exports")
+year_filter = st.slider('Select Year', min_value=1970, max_value=2000, value=1970)
 df_choropleth = df_filtered[df_filtered['Year'] == str(year_filter)]
 choropleth_map = px.choropleth(df_choropleth, locations="Country", locationmode='country names', 
                                color="Export in Metric Ton", hover_name="Country", 
                                color_continuous_scale=px.colors.sequential.Plasma, 
                                title=f"Geographical Distribution for {year_filter}")
 st.plotly_chart(choropleth_map)
+
+
 
 # Show raw data if needed
 if st.checkbox('Show Raw Data'):
