@@ -7,6 +7,10 @@ This web application is for the RENO-Titan Project, a three-year international c
 - Identify recovery and disposal options for NORM residues.
 - Develop integrated waste and radiation protection regulations for NORM residues, ensuring safe use in building materials.
 
+### Live Application
+The web application is live and can be accessed at [RENO-TITAN Web Application](https://reno-titan.streamlit.app/).
+
+
 ## Features
 - RENO-TITAN Homepage: Overview of the project, goals, and collaborators.
 - Mineral Statistics Dashboard: Interactive dashboard with various plots analyzing titanium export data (average, max, min, and statistical plots).
