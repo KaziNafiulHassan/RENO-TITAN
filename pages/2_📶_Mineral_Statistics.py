@@ -10,13 +10,13 @@ df = pd.read_csv(data_path)
 df.columns = df.columns.str.strip()
 
 # Clean the data: Drop rows with all NaN values across the years (1970-2000)
-df_cleaned = df.dropna(subset=[str(year) for year in range(1970, 2001)], how='all')
+df_cleaned = df.dropna(subset=[str(year) for year in range(1970, 2018)], how='all')
 
 # Melt the dataframe to make it easier for plotting
 df_melted = df_cleaned.melt(id_vars=['Country', 'Sub-commodity'], var_name='Year', value_name='Export in Metric Ton')
 
 # Initialize a Streamlit app
-st.title("Interactive Dashboard: Titanium Export Statistics (1970-2000)")
+st.title("Interactive Dashboard: Titanium Export Statistics (1970-2018)")
 
 
 # Filter the dataframe based on selections
@@ -33,7 +33,7 @@ if commodity_filter:
 
 # Line Chart: Trend over Time
 st.subheader("Trend of Titanium Exports Over Time")
-line_chart = px.line(df_filtered, x='Year', y='Export in Metric Ton', color='Country', line_group='Sub-commodity', markers=True, title="Trend of Titanium Exports (1970-2000)")
+line_chart = px.line(df_filtered, x='Year', y='Export in Metric Ton', color='Country', line_group='Sub-commodity', markers=True, title="Trend of Titanium Exports (1970-2018)")
 st.plotly_chart(line_chart)
 
 # Bar Chart: Value by Country and Commodity
@@ -59,7 +59,7 @@ with right:
 
 # Choropleth Map: Geographical Distribution of Values
 st.subheader("Geographical Distribution of Titanium Exports")
-year_filter = st.slider('Select Year', min_value=1970, max_value=2000, value=1970)
+year_filter = st.slider('Select Year', min_value=1970, max_value=2018, value=1970)
 df_choropleth = df_filtered[df_filtered['Year'] == str(year_filter)]
 choropleth_map = px.choropleth(df_choropleth, locations="Country", locationmode='country names', 
                                color="Export in Metric Ton", hover_name="Country", 
