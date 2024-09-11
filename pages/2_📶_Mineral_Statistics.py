@@ -88,7 +88,7 @@ line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity
                      title=f"Trend of {mineral_page} {stat_type} Over Time", 
                      labels={'Metric Ton': 'Amount (Metric Ton)'})
 line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
-                         font=dict(family="Arial", size=14), width=1200, height=600)
+                         font=dict(family="Arial", size=14), width=1800, height=600)
 st.plotly_chart(line_chart)
 
 st.subheader(f"Comparison of {mineral_page} {stat_type} by Country and Sub-commodity")
