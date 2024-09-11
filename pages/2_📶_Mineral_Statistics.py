@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import leafmap.foliumap as leafmap
 
 # File paths for all statistics
 titanium_export_path = 'data/Titanium Export Statistics.csv'
@@ -12,8 +13,8 @@ zirconium_export_path = 'data/Zirconium Export Statistics.csv'
 zirconium_import_path = 'data/Zirconium Import Statistics.csv'
 zirconium_production_path = 'data/Zirconium Production Statistics.csv'
 
-rare_earth_export_path = 'data/Rare_Earth_Export_Statistics.csv'
-rare_earth_import_path = 'data/Rare_Earth_Import_Statistics.csv'
+rare_earth_export_path = 'data/Rare_Earth_Export Statistics.csv'
+rare_earth_import_path = 'data/Rare_Earth_Import Statistics.csv'
 rare_earth_production_path = 'data/Rare_Earth_Production_Statistics.csv'
 
 # Function to load and preprocess the data
@@ -64,6 +65,12 @@ st.subheader(f"Filter Data for {mineral_page} {stat_type}")
 country_filter = st.multiselect('Select Countries', options=df_filtered['Country'].unique())
 commodity_filter = st.multiselect('Select Sub-commodities', options=df_filtered['Sub-commodity'].unique())
 
+# If no country is selected, display data for top 5 countries with the highest metric tons
+if not country_filter:
+    top_5_countries = df_filtered.groupby('Country')['Metric Ton'].sum().nlargest(5).index
+    df_filtered = df_filtered[df_filtered['Country'].isin(top_5_countries)]
+
+# Filter data by country and sub-commodity if selected
 if country_filter:
     df_filtered = df_filtered[df_filtered['Country'].isin(country_filter)]
 if commodity_filter:
@@ -76,33 +83,37 @@ max_row = df_filtered[df_filtered['Metric Ton'] == max_value]
 st.metric(label=f"Maximum {stat_type} (Metric Ton)", value=f"{max_value:,}")
 st.write(f"Country: {max_row.iloc[0]['Country']}, Sub-commodity: {max_row.iloc[0]['Sub-commodity']}, Year: {max_row.iloc[0]['Year']}")
 
-# Create charts for the selected mineral and statistic
+# Create charts for the selected mineral and statistic with distinct sub-commodity colors
 st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
-line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Country', line_group='Sub-commodity', markers=True, 
+line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', line_group='Country', 
+                     facet_col='Country', markers=True, 
                      title=f"Trend of {mineral_page} {stat_type} Over Time", 
                      labels={'Metric Ton': 'Amount (Metric Ton)'})
 line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
                          font=dict(family="Arial", size=14))
 st.plotly_chart(line_chart)
 
-st.subheader(f"Comparison of {mineral_page} {stat_type} by Country and Sub-commodity")
-bar_chart = px.bar(df_filtered, x='Country', y='Metric Ton', color='Sub-commodity', barmode='group', 
-                   title=f"Comparison of {mineral_page} {stat_type} by Country and Sub-commodity")
-bar_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24),
-                        font=dict(family="Arial", size=14))
-st.plotly_chart(bar_chart)
-
-# Choropleth map for geographical distribution
+# Replace Choropleth with a more interactive map using Leafmap
 st.subheader(f"Geographical Distribution of {mineral_page} {stat_type}")
+map_center = [0, 0]  # Center of the map
+m = leafmap.Map(center=map_center, zoom=2)
+
+# Add markers for each country based on the selected year's data
 year_filter = st.slider('Select Year', min_value=2012, max_value=2022, value=2012)
-df_choropleth = df_filtered[df_filtered['Year'] == str(year_filter)]
-choropleth_map = px.choropleth(df_choropleth, locations="Country", locationmode='country names', 
-                               color="Metric Ton", hover_name="Country", 
-                               color_continuous_scale=px.colors.sequential.Plasma,
-                               title=f"Geographical Distribution of {mineral_page} {stat_type} in {year_filter}")
-choropleth_map.update_layout(template='plotly_dark', title_font=dict(size=24), 
-                             font=dict(family="Arial", size=14))
-st.plotly_chart(choropleth_map)
+df_map = df_filtered[df_filtered['Year'] == str(year_filter)]
+
+for index, row in df_map.iterrows():
+    country = row['Country']
+    metric_ton = row['Metric Ton']
+    sub_commodity = row['Sub-commodity']
+    
+    # Geocoding (simplified for this example)
+    lat, lon = leafmap.country_geocoder(country)  # You can enhance this with actual geo-coordinates
+    popup_content = f"{country}<br>Metric Ton: {metric_ton:,}<br>Sub-commodity: {sub_commodity}"
+    m.add_marker(location=[lat, lon], popup=popup_content, tooltip=popup_content)
+
+# Display map
+m.to_streamlit(height=500)
 
 # Optionally show raw data
 if st.checkbox('Show Raw Data'):
