@@ -2,73 +2,85 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# Load the CSV from the local path
-data_path = 'data/Titanium Export Statistics.csv'
-df = pd.read_csv(data_path)
+# File paths for all statistics
+titanium_export_path = 'data/Titanium Export Statistics.csv'
+titanium_import_path = 'data/Titanium Import Statistics.csv'
+titanium_production_path = 'data/Titanium Production Statistics.csv'
 
-# Clean the column names: Strip whitespace from the names
-df.columns = df.columns.str.strip()
+zirconium_export_path = 'data/Zirconium Export Statistics.csv'
+zirconium_import_path = 'data/Zirconium Import Statistics.csv'
+zirconium_production_path = 'data/Zirconium Production Statistics.csv'
 
-# Clean the data: Drop rows with all NaN values across the years (1970-2000)
-df_cleaned = df.dropna(subset=[str(year) for year in range(1970, 2018)], how='all')
+rare_earth_export_path = 'data/Rare_Earth_Export_Statistics.csv'
+rare_earth_import_path = 'data/Rare_Earth_Import_Statistics.csv'
+rare_earth_production_path = 'data/Rare_Earth_Production_Statistics.csv'
 
-# Melt the dataframe to make it easier for plotting
-df_melted = df_cleaned.melt(id_vars=['Country', 'Sub-commodity'], var_name='Year', value_name='Export in Metric Ton')
+# Function to load and preprocess the data
+def load_and_clean_data(data_path):
+    df = pd.read_csv(data_path)
+    df.columns = df.columns.str.strip()  # Clean column names by stripping whitespace
+    df_cleaned = df.dropna(subset=[str(year) for year in range(1970, 2018)], how='all')  # Clean rows with NaN values
+    df_melted = df_cleaned.melt(id_vars=['Country'], var_name='Year', value_name='Metric Ton')
+    return df_melted
 
-# Initialize a Streamlit app
-st.title("Interactive Dashboard: Titanium Export Statistics (1970-2018)")
+# Sidebar for mineral selection and statistics type
+st.sidebar.title("Mineral Subpages")
+mineral_page = st.sidebar.radio("Select Mineral", ["Titanium", "Zirconium", "Rare Earth"])
 
+st.sidebar.title("Select Statistic Type")
+stat_type = st.sidebar.radio("Statistic Type", ["Export", "Import", "Production"])
 
-# Filter the dataframe based on selections
-st.subheader("Filter Data")
-country_filter = st.multiselect('Select Countries', options=df_melted['Country'].unique())
-commodity_filter = st.multiselect('Select Sub-commodities', options=df_melted['Sub-commodity'].unique())
+# Load data based on mineral and statistic type
+if mineral_page == "Titanium":
+    st.title(f"Interactive Dashboard: Titanium {stat_type} Statistics (1970-2018)")
+    if stat_type == "Export":
+        df_filtered = load_and_clean_data(titanium_export_path)
+    elif stat_type == "Import":
+        df_filtered = load_and_clean_data(titanium_import_path)
+    else:
+        df_filtered = load_and_clean_data(titanium_production_path)
+        
+elif mineral_page == "Zirconium":
+    st.title(f"Interactive Dashboard: Zirconium {stat_type} Statistics (1970-2018)")
+    if stat_type == "Export":
+        df_filtered = load_and_clean_data(zirconium_export_path)
+    elif stat_type == "Import":
+        df_filtered = load_and_clean_data(zirconium_import_path)
+    else:
+        df_filtered = load_and_clean_data(zirconium_production_path)
+        
+else:
+    st.title(f"Interactive Dashboard: Rare Earth {stat_type} Statistics (1970-2018)")
+    if stat_type == "Export":
+        df_filtered = load_and_clean_data(rare_earth_export_path)
+    elif stat_type == "Import":
+        df_filtered = load_and_clean_data(rare_earth_import_path)
+    else:
+        df_filtered = load_and_clean_data(rare_earth_production_path)
 
-# Filter the dataframe based on selections (only apply filters if user selects anything)
-df_filtered = df_melted.copy()
-if country_filter:
-    df_filtered = df_filtered[df_filtered['Country'].isin(country_filter)]
-if commodity_filter:
-    df_filtered = df_filtered[df_filtered['Sub-commodity'].isin(commodity_filter)]
+# Filter data based on country selections
+st.subheader(f"Filter Data for {mineral_page} {stat_type}")
+country_filter = st.multiselect('Select Countries', options=df_filtered['Country'].unique())
+df_filtered = df_filtered[df_filtered['Country'].isin(country_filter)] if country_filter else df_filtered
 
-# Line Chart: Trend over Time
-st.subheader("Trend of Titanium Exports Over Time")
-line_chart = px.line(df_filtered, x='Year', y='Export in Metric Ton', color='Country', line_group='Sub-commodity', markers=True, title="Trend of Titanium Exports (1970-2018)")
+# Create charts for the selected mineral and statistic
+st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
+line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Country', markers=True)
 st.plotly_chart(line_chart)
 
-# Bar Chart: Value by Country and Commodity
-st.subheader("Comparison of Titanium Exports by Country and Commodity")
-bar_chart = px.bar(df_filtered, x='Country', y='Export in Metric Ton', color='Sub-commodity', barmode='group', title="Comparison by Country and Sub-commodity")
+st.subheader(f"Comparison of {mineral_page} {stat_type} by Country")
+bar_chart = px.bar(df_filtered, x='Country', y='Metric Ton', color='Country', barmode='group')
 st.plotly_chart(bar_chart)
 
-# Maximum and Minimum Export by Country
-st.subheader("Maximum and Minimum Exports by Country")
-
-# Group data by country and find max/min exports
-df_grouped = df_melted.groupby('Country')['Export in Metric Ton'].agg(['max', 'min']).reset_index()
-
-# Display maximum and minimum exports
-left, right = st.columns(2)
-with left:
-    st.write("Maximum Exports by Country")
-    st.write(df_grouped[['Country', 'max']].sort_values(by='max', ascending=False))
-with right:
-    st.write("Minimum Exports by Country")
-    st.write(df_grouped[['Country', 'min']].sort_values(by='min'))
-
-
-# Choropleth Map: Geographical Distribution of Values
-st.subheader("Geographical Distribution of Titanium Exports")
+# Choropleth map for geographical distribution
+st.subheader(f"Geographical Distribution of {mineral_page} {stat_type}")
 year_filter = st.slider('Select Year', min_value=1970, max_value=2018, value=1970)
 df_choropleth = df_filtered[df_filtered['Year'] == str(year_filter)]
 choropleth_map = px.choropleth(df_choropleth, locations="Country", locationmode='country names', 
-                               color="Export in Metric Ton", hover_name="Country", 
-                               color_continuous_scale=px.colors.sequential.Plasma, 
-                               title=f"Geographical Distribution for {year_filter}")
+                               color="Metric Ton", hover_name="Country", 
+                               color_continuous_scale=px.colors.sequential.Plasma)
 st.plotly_chart(choropleth_map)
 
-
-
-# Show raw data if needed
+# Optionally show raw data
 if st.checkbox('Show Raw Data'):
     st.write(df_filtered)
