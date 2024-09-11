@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 import streamlit as st
 import leafmap.foliumap as leafmap
 from geopy.geocoders import Nominatim
@@ -84,20 +85,23 @@ max_row = df_filtered[df_filtered['Metric Ton'] == max_value]
 st.metric(label=f"Maximum {stat_type} (Metric Ton)", value=f"{max_value:,}")
 st.write(f"Country: {max_row.iloc[0]['Country']}, Sub-commodity: {max_row.iloc[0]['Sub-commodity']}, Year: {max_row.iloc[0]['Year']}")
 
-# Create charts for the selected mineral and statistic with distinct sub-commodity colors
 st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
 
 # Increase the width and spacing
 line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', 
-                     line_group='Country', facet_col='Country', facet_col_wrap=2,  # Adjust to fit two countries per row
+                     line_group='Country', facet_col='Country', facet_col_wrap=2,  # Two countries per row
                      markers=True, title=f"Trend of {mineral_page} {stat_type} Over Time", 
                      labels={'Metric Ton': 'Amount (Metric Ton)'}, width=1000, height=600)
 
-line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
-                         font=dict(family="Arial", size=14), margin=dict(l=40, r=40, t=40, b=40), 
-                         facet_row_spacing=0.05, facet_col_spacing=0.05)  # Better spacing between facets
+# Customize layout: hover mode, title font, margins, and spacing between facets
+line_chart.update_layout(hovermode='x unified', template='plotly_dark', 
+                         title_font=dict(size=24), font=dict(family="Arial", size=14), 
+                         margin=dict(l=40, r=40, t=40, b=40), 
+                         facet_row_spacing=0.05, facet_col_spacing=0.05)  # Adjust facet spacing
 
+# Display the Plotly line chart in Streamlit
 st.plotly_chart(line_chart)
+
 
 # Initialize the geocoder
 geolocator = Nominatim(user_agent="geoapiExercises")
