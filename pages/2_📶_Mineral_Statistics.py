@@ -83,7 +83,8 @@ st.write(f"Country: {max_row.iloc[0]['Country']}, Sub-commodity: {max_row.iloc[0
 
 # Create charts for the selected mineral and statistic
 st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
-line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Country', line_group='Sub-commodity', markers=True, 
+line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', line_group='Country', 
+                     facet_col='Country', markers=True, 
                      title=f"Trend of {mineral_page} {stat_type} Over Time", 
                      labels={'Metric Ton': 'Amount (Metric Ton)'})
 line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
