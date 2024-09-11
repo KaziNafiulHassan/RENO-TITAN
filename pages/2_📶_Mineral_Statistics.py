@@ -87,20 +87,16 @@ st.write(f"Country: {max_row.iloc[0]['Country']}, Sub-commodity: {max_row.iloc[0
 
 st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
 
-# Increase the width and spacing
-line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', 
-                     line_group='Country', facet_col='Country', facet_col_wrap=2,  # Two countries per row
-                     markers=True, title=f"Trend of {mineral_page} {stat_type} Over Time", 
-                     labels={'Metric Ton': 'Amount (Metric Ton)'}, width=1000, height=600)
-
-# Customize layout: hover mode, title font, margins, and spacing between facets
-line_chart.update_layout(hovermode='x unified', template='plotly_dark', 
-                         title_font=dict(size=24), font=dict(family="Arial", size=14), 
-                         margin=dict(l=40, r=40, t=40, b=40), 
-                         facet_row_spacing=0.05, facet_col_spacing=0.05)  # Adjust facet spacing
-
-# Display the Plotly line chart in Streamlit
+# Create charts for the selected mineral and statistic with distinct sub-commodity colors
+st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
+line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', line_group='Country', 
+                     facet_col='Country', markers=True, 
+                     title=f"Trend of {mineral_page} {stat_type} Over Time", 
+                     labels={'Metric Ton': 'Amount (Metric Ton)'})
+line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
+                         font=dict(family="Arial", size=14))
 st.plotly_chart(line_chart)
+
 
 
 # Initialize the geocoder
