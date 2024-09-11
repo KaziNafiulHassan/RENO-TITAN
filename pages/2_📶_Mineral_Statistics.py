@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import leafmap.foliumap as leafmap
+from geopy.geocoders import Nominatim
 
 # File paths for all statistics
 titanium_export_path = 'data/Titanium Export Statistics.csv'
@@ -85,34 +86,56 @@ st.write(f"Country: {max_row.iloc[0]['Country']}, Sub-commodity: {max_row.iloc[0
 
 # Create charts for the selected mineral and statistic with distinct sub-commodity colors
 st.subheader(f"Trend of {mineral_page} {stat_type} Over Time")
-line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', line_group='Country', 
-                     facet_col='Country', markers=True, 
-                     title=f"Trend of {mineral_page} {stat_type} Over Time", 
-                     labels={'Metric Ton': 'Amount (Metric Ton)'})
+
+# Increase the width and spacing
+line_chart = px.line(df_filtered, x='Year', y='Metric Ton', color='Sub-commodity', 
+                     line_group='Country', facet_col='Country', facet_col_wrap=2,  # Adjust to fit two countries per row
+                     markers=True, title=f"Trend of {mineral_page} {stat_type} Over Time", 
+                     labels={'Metric Ton': 'Amount (Metric Ton)'}, width=1000, height=600)
+
 line_chart.update_layout(hovermode='x unified', template='plotly_dark', title_font=dict(size=24), 
-                         font=dict(family="Arial", size=14))
+                         font=dict(family="Arial", size=14), margin=dict(l=40, r=40, t=40, b=40), 
+                         facet_row_spacing=0.05, facet_col_spacing=0.05)  # Better spacing between facets
+
 st.plotly_chart(line_chart)
 
-# Replace Choropleth with a more interactive map using Leafmap
-st.subheader(f"Geographical Distribution of {mineral_page} {stat_type}")
-map_center = [0, 0]  # Center of the map
-m = leafmap.Map(center=map_center, zoom=2)
+# Initialize the geocoder
+geolocator = Nominatim(user_agent="geoapiExercises")
 
-# Add markers for each country based on the selected year's data
+# Function to get lat/lon for a country
+def get_country_coordinates(country_name):
+    try:
+        location = geolocator.geocode(country_name)
+        if location:
+            return location.latitude, location.longitude
+        else:
+            return None, None
+    except Exception as e:
+        return None, None
+
+# Filter data for selected year
+st.subheader(f"Geographical Distribution of {mineral_page} {stat_type}")
 year_filter = st.slider('Select Year', min_value=2012, max_value=2022, value=2012)
-df_map = df_filtered[df_filtered['Year'] == str(year_filter)]
+
+# Filter the dataframe based on the selected year
+df_map = df_filtered[['Country', 'Sub-commodity', str(year_filter)]].copy()
+df_map.rename(columns={str(year_filter): 'Metric Ton'}, inplace=True)
+
+# Create the interactive map
+m = leafmap.Map(center=[0, 0], zoom=2)
 
 for index, row in df_map.iterrows():
     country = row['Country']
-    metric_ton = row['Metric Ton']
+    metric_ton = row['Metric Ton']  # Now using the correct column name for the selected year
     sub_commodity = row['Sub-commodity']
     
-    # Geocoding (simplified for this example)
-    lat, lon = leafmap.country_geocoder(country)  # You can enhance this with actual geo-coordinates
-    popup_content = f"{country}<br>Metric Ton: {metric_ton:,}<br>Sub-commodity: {sub_commodity}"
-    m.add_marker(location=[lat, lon], popup=popup_content, tooltip=popup_content)
+    # Get latitude and longitude using geopy
+    lat, lon = get_country_coordinates(country)
+    
+    if lat and lon:
+        popup_content = f"{country}<br>Metric Ton: {metric_ton:,}<br>Sub-commodity: {sub_commodity}"
+        m.add_marker(location=[lat, lon], popup=popup_content, tooltip=popup_content)
 
-# Display map
 m.to_streamlit(height=500)
 
 # Optionally show raw data
