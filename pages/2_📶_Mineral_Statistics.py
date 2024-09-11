@@ -64,6 +64,11 @@ st.subheader(f"Filter Data for {mineral_page} {stat_type}")
 country_filter = st.multiselect('Select Countries', options=df_filtered['Country'].unique())
 commodity_filter = st.multiselect('Select Sub-commodities', options=df_filtered['Sub-commodity'].unique())
 
+# If no country is selected, display data for top 3 countries with the highest metric tons
+if not country_filter:
+    top_3_countries = df_filtered.groupby('Country')['Metric Ton'].sum().nlargest(3).index
+    df_filtered = df_filtered[df_filtered['Country'].isin(top_3_countries)]
+
 if country_filter:
     df_filtered = df_filtered[df_filtered['Country'].isin(country_filter)]
 if commodity_filter:
