@@ -9,13 +9,10 @@ import numpy as np
 # Load the dataset
 df = pd.read_csv("data/Vietnam Statistical Yearbook Data.csv")
 
-# Data cleaning
-df = df.dropna(how='all')  # Drop rows where all values are NaN
-df.fillna(0, inplace=True)  # Fill missing values with 0 for simplicity
 
 # List of minerals/resources for analysis
-minerals = ["Titan ores", "Coal", "Iron ores", "Copper ores", "Antimoan ores",
-            "Stone of all kinds", "Sands", "Pebbles, gravel", "Apatite ores", "Lime", "Sand, Pebbles"]
+minerals = ["Titan ores / (for 2005-2010, its 52% TiO2) (000, tons)", "Coal (000, tons)", "Iron ores (000, tons)", "Copper ores (ton)", "Antimoan ores (ton)",
+            "Stone of all kinds (Mill. M3)", "Sands (Thous. M3)", "Pebbles, gravel (Thous. M3)", "Apatite ores (000, tons)", "Lime (000, tons)", "Sand, Pebbles (Thous. M3)"]
 
 # Streamlit page setup
 st.title("Vietnam Mineral Production Statistics")
