@@ -8,7 +8,7 @@ This web application is for the RENO-Titan Project, a three-year international c
 - Develop integrated waste and radiation protection regulations for NORM residues, ensuring safe use in building materials.
 
 ### Live Application
-The web application is live and can be accessed at [RENO-TITAN Web Application](https://reno-titan.streamlit.app/).
+The web application is live and can be accessed at [RENO-TITAN Web Application](https://reno-titan-app.streamlit.app/).
 
 
 ## Features
